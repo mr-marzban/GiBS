@@ -1,0 +1,23 @@
+# Core numerical / scientific
+numpy>=1.22.0
+scipy>=1.7.0
+pandas>=1.3.0
+
+# Deep learning — choose one (both are supported by autoencoder.py)
+# PyTorch (recommended)
+torch>=1.12.0
+# TensorFlow / Keras (alternative)
+# tensorflow>=2.9.0
+
+# Visualisation
+matplotlib>=3.5.0
+
+# Optional — Jupyter notebooks
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Optional — GDS layout export
+gdspy>=1.6.0       # for writing GDS files from radius maps
+
+# Lumerical Python API is loaded dynamically via importlib;
+# install Lumerical and set LUMAPI_PATH to lumapi.py
