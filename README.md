@@ -2,67 +2,67 @@
 
 **An inverse-design framework for large-scale nonlocal metasurfaces.**
 
-GiBS represents a metasurface supercell as a compact set of coefficients from smooth parametric bases (Fourier or Chebyshev), compressing the design space by more than an order of magnitude. It integrates this low-dimensional geometry encoding with an autoencoder-based manifold-learning workflow to map structure–response relationships, enabling rapid exploration and systematic fabrication-sensitivity analysis.
+GiBS represents a metasurface supercell as a compact set of coefficients from smooth parametric bases (Fourier or Chebyshev), compressing the design space by more than an order of magnitude. It combines this low-dimensional geometry encoding with an autoencoder-based manifold-learning workflow to map structure–response relationships, enabling rapid exploration and systematic fabrication-sensitivity analysis.
 
-> **Paper:** Marzban, R., Zandi, A., & Adibi, A. (2026). *GiBS: Generative Input-side Basis-driven Structures.* arXiv:2511.07339
-> [https://arxiv.org/abs/2511.07339](https://arxiv.org/abs/2511.07339)
+> **Paper:** Marzban, R., Zandi, A., & Adibi, A. (2026). *GiBS: Generative Input-side Basis-driven Structures.*
+> arXiv:2511.07339 — [https://arxiv.org/abs/2511.07339](https://arxiv.org/abs/2511.07339)
 
 ---
 
-## Key results from the paper
+## Key results
 
 | | |
-|---|---|
-| ![Fig 1 — Supercell geometry](figs/fig1_supercell.png) | ![Fig 3a — Latent space](figs/fig3a_latent_space.png) |
-| **Fig. 1** — Fourier-basis supercell. 12 coefficients fully define a 16×16 pillar arrangement with smooth spatial variation and fabrication-compatible features. | **Fig. 3a** — Latent-space embedding of scattering spectra. GiBS structures (blue, green) cover a broader, more continuous manifold than random designs (red). |
-| ![Fig 2e — Reconstruction](figs/fig2e_reconstruction.png) | ![Fig 6c — Experiment](figs/fig6c_experiment.png) |
-| **Fig. 2e** — Autoencoder reconstruction fidelity. The 2-D latent space faithfully represents the full 201-point spectrum. | **Fig. 6c** — Measured vs. simulated scattering efficiency of the fabricated PEDOT:PSS metasurface (500–1100 nm). |
-
-> **Note:** Place the extracted paper figures in the `figs/` folder with the filenames shown above to enable the side-by-side comparisons in `demo.py`.
+|:---:|:---:|
+| ![Fig 1](figs/Shape_1.png) | ![Fig 2](figs/Picture2.png) |
+| **Fig. 1** — A 16×16 pillar supercell fully defined by 12 Fourier basis coefficients. The smooth spatial variation ensures fabrication compatibility while capturing asymmetry for nonlocal interactions. | **Fig. 2** — Autoencoder pipeline: design parameters → FDTD simulation → 201-point spectrum → 2-D latent space → reconstruction. Validation loss converges to ~10⁻⁴. |
+| ![Fig 3](figs/Picture3.png) | ![Fig 4](figs/Picture4.png) |
+| **Fig. 3** — Latent-space embedding of scattering spectra. GiBS structures (Fourier: blue, Chebyshev: green) span a far broader and more continuous manifold than random designs (red), enabling systematic inverse design. | **Fig. 4** — Latent distributions across both insulating and metallic PEDOT:PSS phases. GiBS (blue) consistently broadens and connects the accessible response space compared to random sampling (red). |
 
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/mmarzban3/GiBS.git
+git clone https://github.com/mr-marzban/GiBS.git
 cd GiBS
 pip install -r requirements.txt
 ```
 
-**Lumerical FDTD** (optional — required only for actual electromagnetic simulation):
+Lumerical FDTD is optional (needed only for actual EM simulation). Point to it via:
 
 ```bash
-# Point to your Lumerical Python API
 export LUMAPI_PATH="/path/to/Lumerical/api/python/lumapi.py"
 ```
 
 ---
 
-## Quick start (no Lumerical needed)
+## Quick start
+
+### Fourier-basis supercell
 
 ```python
+import numpy as np
 from src.geometry import build_supercell
 from src.visualization import plot_radius_map
 
-# Build a Fourier-basis supercell using paper Fig. 1(c) coefficients
-import numpy as np
+# Coefficients from Fig. 1(c) of the paper
 coeffs = np.array([0.0, 0.0, 0.0, 0.15, 0.4, -0.5, -0.1, -0.4, -0.1, 0.6, 0.6])
 
 design = build_supercell(
     nx=16, ny=16,
-    supercell_period=1.5,   # µm
+    supercell_period=1.5,        # µm  →  24 µm supercell
     r_base=0.5,
     coeffs=coeffs,
-    omega_x=0.22, omega_y=0.33,
+    omega_x=0.22, omega_y=0.33,  # spatial frequencies (µm⁻¹)
     basis="fourier",
-    fab_threshold=0.04,     # 80 nm min radius
+    fab_threshold=0.04,          # 80 nm minimum pillar radius
+    z_span=0.4,                  # 400 nm PEDOT:PSS film
 )
-print(f"Active pillars: {design.n_active_pillars}")
+print(f"Active pillars: {design.n_active_pillars} / {design.nx * design.ny}")
 plot_radius_map(design.X, design.Y, design.R_fab)
 ```
 
-### Chebyshev basis
+### Chebyshev-basis supercell
 
 ```python
 import numpy as np
@@ -90,7 +90,6 @@ from src.autoencoder import train_autoencoder, encode_spectra
 
 wav, coeffs, spectra = generate_random_dataset(n_designs=1200, seed=42)
 model, history = train_autoencoder(spectra, latent_dim=2, epochs=20)
-
 z = encode_spectra(model, spectra)   # shape (1200, 2)
 ```
 
@@ -100,48 +99,12 @@ z = encode_spectra(model, spectra)   # shape (1200, 2)
 python demo.py
 ```
 
-This runs all six pipeline steps, saves figures to `outputs/`, and displays
-side-by-side comparisons with the paper figures (if placed in `figs/`).
+Runs all four paper figures side-by-side with reproduced GiBS outputs.
+Results are saved to `outputs/`.
 
 ---
 
-## Repository layout
-
-```
-GiBS/
-├── src/
-│   ├── __init__.py
-│   ├── basis.py           # Fourier & Chebyshev basis functions (Eqs. 1–3)
-│   ├── geometry.py        # GiBSDesign dataclass + supercell builder
-│   ├── simulation.py      # Lumerical FDTD interface (lumapi wrapper)
-│   ├── autoencoder.py     # Spectral autoencoder + GiBS loss (Eq. 5)
-│   ├── dataset.py         # CSV I/O + synthetic dataset generator
-│   └── visualization.py   # All paper-style plots
-├── figs/                  # Paper figures (add manually from the PDF)
-├── outputs/               # Generated by demo.py  (git-ignored)
-├── demo.py                # End-to-end demo without Lumerical
-├── Version2.ipynb         # Original research notebook
-├── requirements.txt
-├── LICENSE
-└── README.md
-```
-
----
-
-## Module overview
-
-| Module | Description |
-|--------|-------------|
-| `src/basis.py` | `fourier_basis()`, `chebyshev_basis()`, `generate_radius_map()`, `apply_fabrication_constraint()` |
-| `src/geometry.py` | `GiBSDesign` dataclass; `build_supercell()` convenience function |
-| `src/simulation.py` | `LumericalFDTD` class with `run_single()` and `run_integrated()` (angle-averaged) |
-| `src/autoencoder.py` | `SpectralAutoencoder` (PyTorch); `train_autoencoder()`; `encode_spectra()` |
-| `src/dataset.py` | `save_design_csv()`, `load_spectra_batch()`, `generate_random_dataset()` |
-| `src/visualization.py` | `plot_optical_response()`, `plot_latent_space()`, `plot_radius_map()`, `plot_autoencoder_reconstruction()` |
-
----
-
-## Simulation workflow (with Lumerical)
+## Lumerical simulation (with licence)
 
 ```python
 from src.geometry import build_supercell
@@ -150,26 +113,20 @@ from src.simulation import LumericalFDTD
 design = build_supercell(nx=16, ny=16, supercell_period=1.5,
                          r_base=0.5, coeffs=coeffs)
 
-# Insulating phase (state=0)
-sim = LumericalFDTD.connect(state=0)
-result = sim.run_single(design, incident_theta=0, item=0)
+sim    = LumericalFDTD.connect(state=0)          # state 0 = insulating phase
+result = sim.run_single(design, incident_theta=0)
 
-print(result.wavelength)     # µm
-print(result.scattering)     # broadband scattering efficiency
+print(result.wavelength)    # µm
+print(result.scattering)    # broadband scattering efficiency
 sim.close()
-```
 
-For angle-integrated efficiencies (matches paper's Lambertian-weighted metric):
-
-```python
+# Angle-integrated (Lambertian-weighted) efficiencies
 result = sim.run_integrated(design, n_angles=16)
 ```
 
 ---
 
 ## Citation
-
-If you use GiBS in your research, please cite:
 
 ```bibtex
 @article{marzban2026gibs,
@@ -189,10 +146,3 @@ If you use GiBS in your research, please cite:
 - **Institution:** School of Electrical and Computer Engineering, Georgia Institute of Technology
 - **Email:** mmarzban3@gatech.edu
 - **arXiv:** [2511.07339](https://arxiv.org/abs/2511.07339)
-
----
-
-## Acknowledgments
-
-This research was developed with funding from DARPA under grant FA8650-22-C-7207 (Coded Visibility)
-and with support from Georgia Tech's Institute for Matter and Systems (IMS).
