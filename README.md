@@ -13,10 +13,8 @@ GiBS represents a metasurface supercell as a compact set of coefficients from sm
 
 | | |
 |:---:|:---:|
-| ![Fig 1](figs/Shape_1.png) | ![Fig 2](figs/Picture2.png) |
-| **Fig. 1** — A 16×16 pillar supercell fully defined by 12 Fourier basis coefficients. The smooth spatial variation ensures fabrication compatibility while capturing asymmetry for nonlocal interactions. | **Fig. 2** — Autoencoder pipeline: design parameters → FDTD simulation → 201-point spectrum → 2-D latent space → reconstruction. Validation loss converges to ~10⁻⁴. |
-| ![Fig 3](figs/Picture3.png) | ![Fig 4](figs/Picture4.png) |
-| **Fig. 3** — Latent-space embedding of scattering spectra. GiBS structures (Fourier: blue, Chebyshev: green) span a far broader and more continuous manifold than random designs (red), enabling systematic inverse design. | **Fig. 4** — Latent distributions across both insulating and metallic PEDOT:PSS phases. GiBS (blue) consistently broadens and connects the accessible response space compared to random sampling (red). |
+| ![Fig 1](figs/Shape_1.png) 
+| **Fig. 1** — A 16×16 pillar supercell fully defined by 12 Fourier basis coefficients. The smooth spatial variation ensures fabrication compatibility while capturing asymmetry for nonlocal interactions. 
 
 ---
 
