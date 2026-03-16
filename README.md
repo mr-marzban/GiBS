@@ -142,5 +142,4 @@ result = sim.run_integrated(design, n_angles=16)
 
 - **Author:** Reza Marzban
 - **Institution:** School of Electrical and Computer Engineering, Georgia Institute of Technology
-- **Email:** mmarzban3@gatech.edu
 - **arXiv:** [2511.07339](https://arxiv.org/abs/2511.07339)
